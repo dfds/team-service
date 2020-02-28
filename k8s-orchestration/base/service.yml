@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: capability-service
+  namespace: selfservice
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8080"
+  labels:
+    app: capability-service
+    project: selfservice
+    department: devex
+    component: capability-service
+    scrape-service-metrics: "true"
+spec:
+  ports:
+  - name: external
+    port: 80
+    targetPort: web
+  - name: metrics
+    port: 8080
+    targetPort: 8080
+  selector:
+    app: capability-service

@@ -1,0 +1,17 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: capability-service
+  namespace: selfservice
+  annotations:
+    kubernetes.io/ingress.class: traefik
+    traefik.frontend.rule.type: PathPrefixStrip
+spec:
+  rules:
+    - host: api.hellman.oxygen.dfds.cloud
+      http:
+        paths:
+          - path: /capability
+            backend:
+              serviceName: capability-service
+              servicePort: external

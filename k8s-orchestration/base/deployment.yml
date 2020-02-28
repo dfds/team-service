@@ -1,0 +1,97 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: capability-service
+  namespace: selfservice
+  labels:
+    project: selfservice
+    department: devex
+    app: capability-service
+    component: capability-service
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  selector:
+    matchLabels:
+      app: capability-service
+  template:
+    metadata:
+      labels:
+        app: capability-service
+        project: selfservice
+        department: devex
+      annotations:
+        prometheus.io/port: "8080"
+        prometheus.io/scrape: "true"
+    spec:
+      containers: 
+      - name: capsvc-db
+        image: postgres:latest
+        env:
+        - name:  POSTGRES_USER
+          value: postgres
+        - name:  POSTGRES_PASSWORD
+          value: p
+        ports:
+        - containerPort: 5432           
+      - name: capability-service
+        image: capability-service
+        ports:
+        - containerPort: 80
+          name: web
+        - containerPort: 8080
+          name: metrics
+        resources:
+          requests:
+            memory: "300Mi"
+            cpu: "100m"
+          limits:
+            memory: "500Mi"
+            cpu: "200m"
+        env:
+        - name: CAPABILITYSERVICE_DATABASE_CONNECTIONSTRING
+          valueFrom:
+            secretKeyRef:
+              name: capability-service-db
+              key: connection-string
+        - name: CAPABILITY_SERVICE_BASIC_AUTH_USER_AND_PASS
+          valueFrom:
+            secretKeyRef:
+              name: capabilityservice-basic-authentication-credentials
+              key: auth
+        - name: CAPABILITY_SERVICE_KAFKA_BOOTSTRAP_SERVERS
+          value: kafka
+        - name: CAPABILITY_SERVICE_KAFKA_BROKER_VERSION_FALLBACK
+          value: "0.10.0.0"
+        - name: CAPABILITY_SERVICE_KAFKA_API_VERSION_FALLBACK_MS
+          value: "0"
+        - name: CAPABILITY_SERVICE_KAFKA_GROUP_ID
+          value: "build.selfservice.capability-service-consumer"
+        - name: CAPABILITY_SERVICE_KAFKA_ENABLE_AUTO_COMMIT
+          value: "false"
+        - name: CAPABILITY_SERVICE_KAFKA_TOPIC_CAPABILITY
+          value: "build.selfservice.events.capabilities"
+        - name: CAPABILITY_SERVICE_KAFKA_TOPIC_TOPICS
+          value: "build.selfservice.events.topics"
+        - name: DOTNET_USE_POLLING_FILE_WATCHER
+          value: "true"
+        - name: KAFKAJANITOR_API_ENDPOINT
+          value: "http://kafka-janitor"
+        livenessProbe:
+          initialDelaySeconds: 5
+          periodSeconds: 60
+          timeoutSeconds: 5
+          httpGet:
+            port: web
+            path: /healthz
+        readinessProbe:
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 5
+          httpGet:
+            port: web
+            path: /healthz
