@@ -28,16 +28,7 @@ spec:
         prometheus.io/port: "8080"
         prometheus.io/scrape: "true"
     spec:
-      containers: 
-      - name: capsvc-db
-        image: postgres:latest
-        env:
-        - name:  POSTGRES_USER
-          value: postgres
-        - name:  POSTGRES_PASSWORD
-          value: p
-        ports:
-        - containerPort: 5432           
+      containers:      
       - name: capability-service
         image: capability-service
         ports:
@@ -95,3 +86,59 @@ spec:
           httpGet:
             port: web
             path: /healthz
+      - name: dbmigrations
+        image: capability-service/dbmigrations
+        env:
+        - name:  PGDATABASE
+          value: ts
+        - name:  PGHOST
+          value: capability-service-db
+        - name:  PGPORT
+          value: "5432"
+        - name:  PGUSER
+          value: postgres
+        - name: PGPASSWORD
+          value: p
+        - name: LOCAL_DEVELOPMENT
+          value: "1"
+        - name: PGSSLMODE
+          value: disable    
+      - name: debug
+        image: sequoiia/aws-playground:latest
+        imagePullPolicy: Always
+        command: ["sleep"]
+        args: ["10d"]
+        env:
+          - name: TZ
+            value: "Europe/Copenhagen"
+
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: capability-service-db
+  name: capability-service-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: capability-service-db
+  template:
+    metadata:
+      labels:
+        app: capability-service-db
+    spec:
+      hostname: capability-service-db
+      containers:
+      - image: postgres:latest
+        name: db
+        env:
+        - name:  POSTGRES_USER
+          value: postgres
+        - name:  POSTGRES_PASSWORD
+          value: p
+        ports:
+        - containerPort: 5432

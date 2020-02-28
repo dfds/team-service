@@ -22,3 +22,27 @@ spec:
     targetPort: 8080
   selector:
     app: capability-service
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: capability-service-db
+  namespace: selfservice
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8080"
+  labels:
+    app: capability-service-db
+    project: selfservice
+    department: devex
+    component: capability-service-db
+    scrape-service-metrics: "true"
+spec:
+  ports:
+  - name: db
+    port: 5432
+    targetPort: 5432
+  selector:
+    app: capability-service-db
