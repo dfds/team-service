@@ -142,3 +142,35 @@ spec:
           value: p
         ports:
         - containerPort: 5432
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: kafka
+  name: kafka
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kafka
+  template:
+    metadata:
+      labels:
+        app: kafka
+    spec:
+      hostname: kafka
+      containers:
+      - image: spotify/kafka
+        name: kafka
+        env:
+        - name: ADVERTISED_HOST
+          value: kafka
+        - name: ADVERTISED_PORT
+          value: "9092"
+        - name: AUTO_CREATE_TOPICS
+          value: "true"
+        ports:
+        - containerPort: 9092     

@@ -46,3 +46,27 @@ spec:
     targetPort: 5432
   selector:
     app: capability-service-db
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: kafka
+  namespace: selfservice
+  annotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "8080"
+  labels:
+    app: kafka
+    project: selfservice
+    department: devex
+    component: kafka
+    scrape-service-metrics: "true"
+spec:
+  ports:
+  - name: kafka
+    port: 9092
+    targetPort: 9092
+  selector:
+    app: kafka
