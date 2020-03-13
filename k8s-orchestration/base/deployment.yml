@@ -121,6 +121,7 @@ metadata:
   labels:
     app: capability-service-db
   name: capability-service-db
+  namespace: selfservice
 spec:
   replicas: 1
   selector:
