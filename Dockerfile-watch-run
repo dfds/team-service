@@ -1,0 +1,32 @@
+#Setup build image
+FROM mcr.microsoft.com/dotnet/core/sdk:3.1 AS build-env
+
+# SSL
+RUN curl -o /tmp/rds-combined-ca-bundle.pem https://s3.amazonaws.com/rds-downloads/rds-combined-ca-bundle.pem \
+    && mv /tmp/rds-combined-ca-bundle.pem /usr/local/share/ca-certificates/rds-combined-ca-bundle.crt \
+    && update-ca-certificates
+
+
+RUN curl -o /tmp/cacert.pem https://curl.haxx.se/ca/cacert.pem \
+    && mv /tmp/cacert.pem /usr/local/share/ca-certificates/cacert.pem \
+    && update-ca-certificates
+
+ENV CAPABILITY_SERVICE_KAFKA_SSL_CA_LOCATION=/usr/local/share/ca-certificates/cacert.pem
+
+#Set container filesystem to /build (and create folder if it doesnt exist)
+WORKDIR /build
+
+#Copy files to container file system.
+COPY ./src ./src
+
+#Set workdir to current project folder
+WORKDIR /build/src/CapabilityService.WebApi
+
+#Restore csproj packages.
+#RUN dotnet restore
+
+#Compile source code using standard Release profile
+#RUN dotnet watch run --no-launch-profile
+
+#Run dotnet executable
+ENTRYPOINT ["dotnet", "watch", "run", "--no-launch-profile"]
